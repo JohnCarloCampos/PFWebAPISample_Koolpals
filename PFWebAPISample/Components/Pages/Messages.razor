@@ -1,6 +1,595 @@
 ﻿@page "/messages"
-<h3>Messages</h3>
 
-@code {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Chat App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
 
-}
+        body {
+            background-color: #f0f4fa;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            max-width: 100%;
+            background: white;
+            overflow: hidden;
+        }
+
+        /* Header styles */
+        .app-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            border-bottom: 1px solid #e6e6e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .header-title {
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 16px;
+            color: #666;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            padding: 8px 12px 0;
+            background-color: white;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            white-space: nowrap;
+        }
+
+            .tabs::-webkit-scrollbar {
+                display: none;
+            }
+
+        .tab {
+            position: relative;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+            .tab.active {
+                color: #3b82f6;
+                font-weight: 500;
+            }
+
+                .tab.active::after {
+                    content: '';
+                    position: absolute;
+                    bottom: -1px;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: #3b82f6;
+                }
+
+        .badge {
+            background: #3b82f6;
+            color: white;
+            font-size: 10px;
+            border-radius: 10px;
+            padding: 2px 6px;
+            margin-left: 4px;
+        }
+
+        /* Chat list */
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            background-color: white;
+        }
+
+        .chat-item {
+            display: flex;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+        }
+
+            .chat-item:active {
+                background-color: #f0f9ff;
+            }
+
+        .chat-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            margin-right: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+            .chat-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .channel-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: #f0f4ff;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .chat-details {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .chat-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .chat-time {
+            font-size: 12px;
+            color: #888;
+            flex-shrink: 0;
+        }
+
+        .chat-message {
+            font-size: 13px;
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            margin-left: 8px;
+        }
+
+        .chat-notification {
+            background: #4ade80;
+            color: white;
+            font-size: 11px;
+            border-radius: 12px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 6px;
+            margin-top: 4px;
+        }
+
+        /* Conversation view */
+        .conversation-view {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            background-color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 20;
+        }
+
+            .conversation-view.active {
+                display: flex;
+            }
+
+        .conversation-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border-bottom: 1px solid #e6e6e6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .back-button {
+            padding: 8px;
+            margin-right: 8px;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .conversation-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 12px;
+            overflow: hidden;
+        }
+
+            .conversation-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .conversation-info {
+            flex: 1;
+        }
+
+        .conversation-name {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .conversation-status {
+            font-size: 12px;
+            color: #22c55e;
+        }
+
+        .conversation-actions {
+            color: #666;
+            padding: 8px;
+        }
+
+        .message-area {
+            flex: 1;
+            background-color: #f7fafc;
+            padding: 16px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 14px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            position: relative;
+            word-wrap: break-word;
+        }
+
+        .incoming {
+            align-self: flex-start;
+            background: white;
+            border: 1px solid #e6e6e6;
+            border-bottom-left-radius: 4px;
+        }
+
+        .outgoing {
+            align-self: flex-end;
+            background: #e7f3ff;
+            color: #0d63e6;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 11px;
+            color: #888;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .outgoing .message-time {
+            justify-content: flex-end;
+            color: #79a5d7;
+        }
+
+        .typing-indicator {
+            align-self: flex-start;
+            color: #888;
+            font-size: 13px;
+            margin-top: 8px;
+            padding-left: 8px;
+        }
+
+        .message-composer {
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-top: 1px solid #e6e6e6;
+        }
+
+        .composer-button {
+            padding: 8px;
+            color: #666;
+        }
+
+        .message-input {
+            flex: 1;
+            margin: 0 8px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 24px;
+            background: #f0f2f5;
+            font-size: 14px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+            .message-input:focus {
+                outline: none;
+                background: #e4e8ed;
+            }
+
+        .send-button {
+            color: #3b82f6;
+            padding: 8px;
+        }
+
+        .checkmark {
+            margin-left: 4px;
+            color: #3b82f6;
+        }
+
+        /* Bottom navigation */
+        .bottom-nav {
+            display: flex;
+            background-color: white;
+            border-top: 1px solid #e6e6e6;
+        }
+
+        .nav-item {
+            flex: 1;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #888;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+            .nav-item.active {
+                color: #3b82f6;
+            }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* Status bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 2px 16px;
+            background-color: #f0f4fa;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .user-avatar {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main view with chat list -->
+    <div class="main-view">
+        <div class="app-header">
+            <div class="user-avatar">
+                <div class="avatar-circle">D</div>
+                <div class="header-title">Chats</div>
+            </div>
+            <div class="header-actions">
+                <div>🔎</div>
+                <div>✏️</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active">All <span class="badge">24</span></div>
+            <div class="tab">Favorites</div>
+            <div class="tab">News</div>
+            <div class="tab">Design</div>
+        </div>
+
+        <div class="chat-list">
+            <div class="chat-item" onclick="showConversation()">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="John Carlo">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">John Carlo</div>
+                        <div class="chat-time">9:55 am</div>
+                    </div>
+                    <div class="chat-message">Pare,Bading ba ako?</div>
+                </div>
+                <div class="chat-right">
+                    <div class="chat-notification">2</div>
+                </div>
+            </div>
+
+            <div class="chat-item">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="Emman">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">Emman</div>
+                        <div class="chat-time">11:36 am</div>
+                    </div>
+                    <div class="chat-message">Aray ko!</div>
+                </div>
+                <div class="chat-right">
+                    <div class="chat-notification">6</div>
+                </div>
+            </div>
+
+            <div class="chat-item">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="Mark">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">Mark </div>
+                        <div class="chat-time">9:29 am</div>
+                    </div>
+                    <div class="chat-message">Lebron, Lebron James</div>
+                </div>
+            </div>
+
+            <div class="chat-item">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="Peter">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">Peter</div>
+                        <div class="chat-time">10:26 am</div>
+                    </div>
+                    <div class="chat-message">pakiss pre</div>
+                </div>
+            </div>
+
+            <div class="chat-item active">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="Lou">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">Lou</div>
+                        <div class="chat-time">10:01 am</div>
+                    </div>
+                    <div class="chat-message">San ka?</div>
+                </div>
+                <div class="chat-right">
+                    <div style="color: #22c55e;">✓</div>
+                </div>
+            </div>
+
+
+            <div class="chat-item">
+                <div class="chat-avatar">
+                    <img src="/api/placeholder/48/48" alt="Kyle">
+                </div>
+                <div class="chat-details">
+                    <div class="chat-header">
+                        <div class="chat-name">Kyle</div>
+                        <div class="chat-time">09:24 am</div>
+                    </div>
+                    <div class="chat-message">Boy!</div>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- Conversation view -->
+        <div class="conversation-view" id="conversationView">
+            <div class="conversation-header">
+                <div class="back-button" onclick="hideConversation()">←</div>
+                <div class="conversation-avatar">
+                    <img src="/api/placeholder/40/40" alt="Jonh">
+                </div>
+                <div class="conversation-info">
+                    <div class="conversation-name">John Carlo</div>
+                    <div class="conversation-status">online</div>
+                </div>
+                <div class="conversation-actions">⋮</div>
+            </div>
+
+            <div class="message-area">
+                <div class="message incoming">
+                    <div> Bading ba ako?.</div>
+                    <div class="message-time">08:56 am</div>
+                </div>
+
+                <div class="message outgoing">
+                    <div>Ewan ko</div>
+                    <div class="message-time">11:05 am <span class="checkmark">✓</span></div>
+                </div>
+
+                <div class="message outgoing">
+                    <div>Lala</div>
+                    <div class="message-time">11:05 am <span class="checkmark">✓</span></div>
+                </div>
+
+                <div class="message outgoing">
+                    <div>Aray ko.</div>
+                    <div class="message-time">11:07 am <span class="checkmark">✓</span></div>
+                </div>
+
+                <div id="typing-indicator" class="typing-indicator">
+                    John Carlo is typing...
+                </div>
+            </div>
+
+            <div class="message-composer">
+                <div class="composer-button">📎</div>
+                <input type="text" class="message-input" placeholder="Message">
+                <div class="composer-button">🎤</div>
+                <div class="send-button">📤</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle typing indicator
+        setInterval(() => {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = typingIndicator.style.display === 'none' ? 'block' : 'none';
+        }, 2000);
+
+        // Show/hide conversation view
+        function showConversation() {
+            document.getElementById('conversationView').classList.add('active');
+        }
+
+        function hideConversation() {
+            document.getElementById('conversationView').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

@@ -1,6 +1,342 @@
 ﻿@page "/notifications"
-<h3>Notifications</h3>
+<div class="header">
+    <span class="header-icon">🔔</span>
+    <span class="header-title">Notification History</span>
+</div>
 
-@code {
+<div class="controls">
+    <div class="search-container">
+        <input type="text" placeholder="Search notifications..." id="searchInput" aria-label="Search notifications">
+        <button id="clearButton" aria-label="Clear search" style="display: none;">✖</button>
+    </div>
+    <button id="searchButton" aria-label="Search">🔍</button>
+    <button id="refreshButton" aria-label="Refresh notifications">🔄</button>
+</div>
 
-}
+<div class="notification-history" id="notificationHistory">
+    <div class="notification-item">
+        <div class="notification-icon">🔔</div>
+        <div class="notification-content">
+            <div class="notification-title">Voice Reminder</div>
+            <div class="notification-message">Service running...</div>
+            <div class="notification-timestamp">18 minutes ago</div>
+        </div>
+    </div>
+    <div class="notification-item">
+        <div class="notification-icon">📩</div>
+        <div class="notification-content">
+            <div class="notification-title">Notifier</div>
+            <div class="notification-message">See you tonight 😘</div>
+            <div class="notification-timestamp">4 minutes ago</div>
+        </div>
+    </div>
+    <div class="notification-item">
+        <div class="notification-icon">📩</div>
+        <div class="notification-content">
+            <div class="notification-title">Notifier</div>
+            <div class="notification-message">Thank you very much 😍</div>
+            <div class="notification-timestamp">3 minutes ago</div>
+        </div>
+    </div>
+    <div class="notification-item">
+        <div class="notification-icon">📈</div>
+        <div class="notification-content">
+            <div class="notification-title">Proximity Sensor Counter</div>
+            <div class="notification-message">Service running...</div>
+            <div class="notification-timestamp">2 minutes ago</div>
+        </div>
+    </div>
+    <div class="notification-item">
+        <div class="notification-icon">🔊</div>
+        <div class="notification-content">
+            <div class="notification-title">Screen On Off Sound</div>
+            <div class="notification-message">Service running...</div>
+            <div class="notification-timestamp">2 minutes ago</div>
+        </div>
+    </div>
+    <div class="notification-item">
+        <div class="notification-icon">📩</div>
+        <div class="notification-content">
+            <div class="notification-title">Notifier</div>
+            <div class="notification-message">Make an appointment with Barbara</div>
+            <div class="notification-timestamp">1 minute ago</div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .header {
+        background-color: #2196F3;
+        color: white;
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        padding: 20px 16px;
+        border-radius: 12px;
+        margin: 20px auto;
+        max-width: 600px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: background-color 0.3s ease;
+    }
+
+        .header:hover {
+            background-color: #1976D2;
+        }
+
+    .header-icon {
+        font-size: 28px;
+    }
+
+    .header-title {
+        font-size: 24px;
+        font-weight: 600;
+    }
+
+    .controls {
+        margin: 10px auto;
+        max-width: 600px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        align-items: center;
+        padding: 0 16px;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    .controls input[type="text"] {
+        flex: 1;
+        padding: 10px 32px 10px 12px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        background-color: #fff;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .controls input[type="text"]:focus {
+        border-color: #2196F3;
+        box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+        outline: none;
+    }
+
+    .controls button {
+        background-color: #2196F3;
+        color: white;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+    }
+
+    .controls button:hover {
+        background-color: #1976D2;
+        transform: scale(1.05);
+    }
+
+    .controls button:disabled {
+        background-color: #ccc;
+        color: #666;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    #clearButton {
+        position: absolute;
+        right: 10px;
+        background: none;
+        color: #666;
+        padding: 5px;
+        font-size: 14px;
+        display: none;
+    }
+
+    #clearButton:hover {
+        color: #000;
+        transform: scale(1.1);
+    }
+
+    .loading::after {
+        content: "";
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        border-top-color: transparent;
+        animation: spin 1s linear infinite;
+        margin-left: 5px;
+    }
+
+    
+
+    .notification-item.hidden {
+        display: none;
+    }
+
+    .no-results {
+        text-align: center;
+        color: #666;
+        padding: 20px;
+        font-size: 16px;
+    }
+
+    .notification-history {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 0 16px;
+    }
+
+    .notification-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+
+    .notification-item:hover {
+        background-color: #f5f5f5;
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .notification-item.selected {
+        background-color: #e3f2fd;
+        border: 1px solid #2196F3;
+    }
+
+    .notification-icon {
+        font-size: 24px;
+        margin-right: 12px;
+    }
+
+    .notification-content {
+        flex: 1;
+    }
+
+    .notification-title {
+        font-weight: 500;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .notification-message {
+        font-size: 14px;
+        color: #666;
+        margin: 4px 0;
+    }
+
+    .notification-timestamp {
+        font-size: 12px;
+        color: #999;
+    }
+</style>
+
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const searchButton = document.getElementById('searchButton');
+    const clearButton = document.getElementById('clearButton');
+    const refreshButton = document.getElementById('refreshButton');
+    const notificationHistory = document.getElementById('notificationHistory');
+
+    function performSearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        const notifications = notificationHistory.querySelectorAll('.notification-item');
+
+        let hasResults = false;
+
+        notifications.forEach(notification => {
+            const title = notification.querySelector('.notification-title').textContent.toLowerCase();
+            const message = notification.querySelector('.notification-message').textContent.toLowerCase();
+
+            if (query === '' || title.includes(query) || message.includes(query)) {
+                notification.classList.remove('hidden');
+                hasResults = true;
+            } else {
+                notification.classList.add('hidden');
+            }
+        });
+
+        let noResults = notificationHistory.querySelector('.no-results');
+        if (!hasResults && query !== '') {
+            if (!noResults) {
+                noResults = document.createElement('div');
+                noResults.className = 'no-results';
+                noResults.textContent = 'No notifications found.';
+                notificationHistory.appendChild(noResults);
+            }
+        } else if (noResults) {
+            noResults.remove();
+        }
+
+        clearButton.style.display = query ? 'block' : 'none';
+    }
+
+    function performRefresh() {
+        refreshButton.disabled = true;
+        refreshButton.classList.add('loading');
+
+        setTimeout(() => {
+         
+            searchInput.value = '';
+            clearButton.style.display = 'none';
+            const notifications = notificationHistory.querySelectorAll('.notification-item');
+            notifications.forEach(notification => {
+                notification.classList.remove('hidden');
+                notification.classList.remove('selected');
+            });
+
+
+            const noResults = notificationHistory.querySelector('.no-results');
+            if (noResults) noResults.remove();
+
+            refreshButton.disabled = false;
+            refreshButton.classList.remove('loading');
+        }, 1000);
+    }
+
+
+    function toggleNotificationSelection(event) {
+        const notification = event.currentTarget;
+        
+        const notifications = notificationHistory.querySelectorAll('.notification-item');
+        notifications.forEach(n => n.classList.remove('selected'));
+        notification.classList.toggle('selected');
+    }
+
+
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('input', performSearch);
+    searchInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') performSearch();
+    });
+
+    clearButton.addEventListener('click', () => {
+        searchInput.value = '';
+        clearButton.style.display = 'none';
+        performSearch();
+        searchInput.focus();
+    });
+
+    refreshButton.addEventListener('click', performRefresh);
+
+  
+    const notifications = notificationHistory.querySelectorAll('.notification-item');
+    notifications.forEach(notification => {
+        notification.addEventListener('click', toggleNotificationSelection);
+    });
+</script>
